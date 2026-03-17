@@ -2,6 +2,8 @@ package com.mdtauhid.securedmessages.repository
 
 import com.mdtauhid.securedmessages.database.MessageDao
 import com.mdtauhid.securedmessages.model.Message
+import com.mdtauhid.securedmessages.parser.SmsCategory
+import kotlinx.coroutines.flow.Flow
 
 class MessageRepository(private val messageDao: MessageDao) {
 
@@ -9,11 +11,11 @@ class MessageRepository(private val messageDao: MessageDao) {
         messageDao.insert(message)
     }
 
-    suspend fun getAllMessages(): List<Message> {
+    fun getAllMessages(): Flow<List<Message>> {
         return messageDao.getAllMessages()
     }
 
-    suspend fun getMessagesByCategory(category: String): List<Message> {
+    fun getMessagesByCategory(category: SmsCategory): Flow<List<Message>> {
         return messageDao.getMessagesByCategory(category)
     }
 }

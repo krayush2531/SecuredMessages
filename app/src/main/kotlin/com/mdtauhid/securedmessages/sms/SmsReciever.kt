@@ -18,34 +18,37 @@ class SmsReceiver : BroadcastReceiver() {
 
         if (intent.action == Telephony.Sms.Intents.SMS_RECEIVED_ACTION) {
 
+            val pendingResult = goAsync()
             val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
 
             val database = DatabaseProvider.getDatabase(context)
             val dao = database.messageDao()
 
-            for (sms in messages) {
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    for (sms in messages) {
 
-                val sender = sms.displayOriginatingAddress ?: "UNKNOWN"
-                val body = sms.messageBody ?: ""
+                        val sender = sms.displayOriginatingAddress ?: "UNKNOWN"
+                        val body = sms.messageBody ?: ""
 
-                val category = SmsCategoryParser.parse(sender)
+                        val category = SmsCategoryParser.parse(sender)
 
-                val message = Message(
-                    sender = sender,
-                    body = body,
-                    timestamp = System.currentTimeMillis(),
-                    category = category
-                )
+                        val message = Message(
+                            sender = sender,
+                            body = body,
+                            timestamp = System.currentTimeMillis(),
+                            category = category
+                        )
 
-                Log.d("SecuredMessages", "Sender: $sender")
-                Log.d("SecuredMessages", "Category: $category")
-                Log.d("SecuredMessages", "Message: $body")
+                        Log.d("SecuredMessages", "Sender: $sender")
+                        Log.d("SecuredMessages", "Category: $category")
+                        Log.d("SecuredMessages", "Message: $body")
 
-                // Save message in background thread
-                CoroutineScope(Dispatchers.IO).launch {
-                    dao.insert(message)
+                        dao.insert(message)
+                    }
+                } finally {
+                    pendingResult.finish()
                 }
-
             }
         }
     }

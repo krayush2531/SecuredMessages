@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">SecuredMessages</string>
+    <string name="permissions_denied_message">SMS permissions are required to receive and classify messages.</string>
 </resources>
