@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.mdtauhid.securedmessages.databinding.ItemMessageBinding
 import com.mdtauhid.securedmessages.model.Message
+import com.mdtauhid.securedmessages.R
 
 class MessageAdapter : ListAdapter<Message, MessageAdapter.MessageViewHolder>(DIFF_CALLBACK) {
 
@@ -26,7 +27,10 @@ class MessageAdapter : ListAdapter<Message, MessageAdapter.MessageViewHolder>(DI
         val message = getItem(position)
         holder.binding.senderText.text = message.sender
         holder.binding.bodyText.text = message.body
-        holder.binding.categoryText.text = message.category.name
+        holder.binding.categoryText.text = holder.binding.root.context.getString(
+            R.string.category_label,
+            message.category.name
+        )
     }
 
     companion object {

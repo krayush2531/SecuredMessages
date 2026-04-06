@@ -8,17 +8,22 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.google.android.material.tabs.TabLayoutMediator
+import androidx.lifecycle.LiveData
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.mdtauhid.securedmessages.database.DatabaseProvider
 import com.mdtauhid.securedmessages.databinding.ActivityMainBinding
+import com.mdtauhid.securedmessages.model.Message
+import com.mdtauhid.securedmessages.parser.SmsCategory
 import com.mdtauhid.securedmessages.repository.MessageRepository
-import com.mdtauhid.securedmessages.ui.MessagesPagerAdapter
+import com.mdtauhid.securedmessages.ui.MessageAdapter
 import com.mdtauhid.securedmessages.viewmodel.MessageViewModel
 import com.mdtauhid.securedmessages.viewmodel.MessageViewModelFactory
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var adapter: MessageAdapter
+    private var activeSource: LiveData<List<Message>>? = null
 
     private val viewModel: MessageViewModel by viewModels {
         MessageViewModelFactory(
@@ -48,8 +53,10 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        setupRecyclerView()
+        setupFilters()
         requestSmsPermissionsIfNeeded()
-        setupTabs()
+        observeMessagesFor(null)
     }
 
     private fun requestSmsPermissionsIfNeeded() {
@@ -64,12 +71,40 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupTabs() {
-        val pagerAdapter = MessagesPagerAdapter(this)
-        binding.viewPager.adapter = pagerAdapter
+    private fun setupRecyclerView() {
+        adapter = MessageAdapter()
+        binding.recyclerView.layoutManager = LinearLayoutManager(this)
+        binding.recyclerView.adapter = adapter
+    }
 
-        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
-            tab.text = pagerAdapter.tabs[position].title
-        }.attach()
+    private fun setupFilters() {
+        binding.filterChipGroup.setOnCheckedStateChangeListener { _, checkedIds ->
+            val selectedCategory = when (checkedIds.firstOrNull()) {
+                R.id.chipPromotional -> SmsCategory.PROMOTIONAL
+                R.id.chipService -> SmsCategory.SERVICE
+                R.id.chipGovernment -> SmsCategory.GOVERNMENT
+                R.id.chipTransactional -> SmsCategory.TRANSACTIONAL
+                R.id.chipImplicit -> SmsCategory.IMPLICIT
+                R.id.chipSpam -> SmsCategory.SPAM
+                else -> null
+            }
+            observeMessagesFor(selectedCategory)
+        }
+    }
+
+    private fun observeMessagesFor(category: SmsCategory?) {
+        activeSource?.removeObservers(this)
+        val source = if (category == null) {
+            viewModel.allMessages
+        } else {
+            viewModel.getMessagesByCategory(category)
+        }
+
+        activeSource = source
+        source.observe(this) { messages ->
+            adapter.submitList(messages)
+            binding.emptyStateText.visibility =
+                if (messages.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
+        }
     }
 }

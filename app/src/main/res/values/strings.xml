@@ -1,4 +1,13 @@
 <resources>
     <string name="app_name">SecuredMessages</string>
     <string name="permissions_denied_message">SMS permissions are required to receive and classify messages.</string>
+    <string name="filter_all">All</string>
+    <string name="filter_promotional">Promotional</string>
+    <string name="filter_service">Service</string>
+    <string name="filter_government">Government</string>
+    <string name="filter_transactions">Transactions</string>
+    <string name="filter_implicit">Implicit</string>
+    <string name="filter_spam">Spam</string>
+    <string name="no_messages">No messages found for this filter.</string>
+    <string name="category_label">Category: %1$s</string>
 </resources>
